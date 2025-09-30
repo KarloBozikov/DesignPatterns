@@ -256,8 +256,324 @@ class PatternData:
                     "victorian_house = director.construct_house()\n"
                     "print(victorian_house)\n"
                 )
-            }
+            },
 
+            # Structural
+            # Adapter
+            "Adapter": {
+                "name": "Adapter",
+                "type": "Structural",
+                "classes": ["USPlug", "EUSocket", "PlugAdapter"],
+                "relationships": [
+                    ("USPlug", "PlugAdapter"),
+                    ("PlugAdapter", "EUSocket")
+                ],
+                "code": (
+                    "# Target: the EU Socket (what client expects)\n"
+                    "class EUSocket:\n"
+                    "    def plug_in(self):\n"
+                    "        return \"Powering device with EU socket voltage (230V)\"\n\n"
+                    "# Adaptee: US Plug (incompatible interface)\n"
+                    "class USPlug:\n"
+                    "    def connect(self):\n"
+                    "        return \"Using US plug with voltage (120V)\"\n\n"
+                    "# Adapter: makes USPlug work with EUSocket\n"
+                    "class PlugAdapter(EUSocket):\n"
+                    "    def __init__(self, us_plug):\n"
+                    "        self.us_plug = us_plug\n\n"
+                    "    def plug_in(self):\n"
+                    "        # Adapt the connect() method to plug_in()\n"
+                    "        return f\"Adapter converts -> {self.us_plug.connect()} to EU standard\"\n\n"
+                    "# Example usage\n"
+                    "us_plug = USPlug()\n"
+                    "adapter = PlugAdapter(us_plug)\n"
+                    "print(adapter.plug_in())\n"
+                )
+            },
+
+            # Bridge
+            "Bridge": {
+                "name": "Bridge",
+                "type": "Structural",
+                "classes": ["Color", "Red", "Blue", "Shape", "Circle", "Square"],
+                "relationships": [
+                    ("Color", "Red"),
+                    ("Color", "Blue"),
+                    ("Shape", "Circle"),
+                    ("Shape", "Square"),
+                    ("Shape", "Color")  # bridge connection
+                ],
+                "code": (
+                    "# Implementor: Color\n"
+                    "class Color:\n"
+                    "    def apply_color(self):\n"
+                    "        raise NotImplementedError\n\n"
+                    "# Concrete Implementors\n"
+                    "class Red(Color):\n"
+                    "    def apply_color(self):\n"
+                    "        return \"red\"\n\n"
+                    "class Blue(Color):\n"
+                    "    def apply_color(self):\n"
+                    "        return \"blue\"\n\n"
+                    "# Abstraction: Shape\n"
+                    "class Shape:\n"
+                    "    def __init__(self, color: Color):\n"
+                    "        self.color = color\n\n"
+                    "    def draw(self):\n"
+                    "        raise NotImplementedError\n\n"
+                    "# Refined Abstractions\n"
+                    "class Circle(Shape):\n"
+                    "    def draw(self):\n"
+                    "        return f\"Drawing a {self.color.apply_color()} circle\"\n\n"
+                    "class Square(Shape):\n"
+                    "    def draw(self):\n"
+                    "        return f\"Drawing a {self.color.apply_color()} square\"\n\n"
+                    "# Example usage\n"
+                    "red_circle = Circle(Red())\n"
+                    "blue_square = Square(Blue())\n"
+                    "print(red_circle.draw())\n"
+                    "print(blue_square.draw())\n"
+                )
+            },
+
+            # Composite
+            "Composite": {
+                "name": "Composite",
+                "type": "Structural",
+                "classes": ["OrderComponent", "Product", "Package"],
+                "relationships": [
+                    ("OrderComponent", "Product"),
+                    ("OrderComponent", "Package"),
+                    ("Package", "OrderComponent")  # composite contains components
+                ],
+                "code": (
+                    "# Component: abstract order item\n"
+                    "class OrderComponent:\n"
+                    "    def get_price(self):\n"
+                    "        raise NotImplementedError\n"
+                    "    def show_details(self, indent=0):\n"
+                    "        raise NotImplementedError\n\n"
+                    "# Leaf: single product\n"
+                    "class Product(OrderComponent):\n"
+                    "    def __init__(self, name, price):\n"
+                    "        self.name = name\n"
+                    "        self.price = price\n\n"
+                    "    def get_price(self):\n"
+                    "        return self.price\n\n"
+                    "    def show_details(self, indent=0):\n"
+                    "        return ' ' * indent + f\"Product: {self.name} (${self.price})\"\n\n"
+                    "# Composite: package of products or sub-packages\n"
+                    "class Package(OrderComponent):\n"
+                    "    def __init__(self, name):\n"
+                    "        self.name = name\n"
+                    "        self.items = []\n\n"
+                    "    def add(self, component: OrderComponent):\n"
+                    "        self.items.append(component)\n\n"
+                    "    def get_price(self):\n"
+                    "        return sum(item.get_price() for item in self.items)\n\n"
+                    "    def show_details(self, indent=0):\n"
+                    "        details = ' ' * indent + f\"Package: {self.name}\\n\"\n"
+                    "        for item in self.items:\n"
+                    "            details += item.show_details(indent + 2) + \"\\n\"\n"
+                    "        return details.rstrip()\n\n"
+                    "# Example usage\n"
+                    "laptop = Product(\"Laptop\", 1200)\n"
+                    "mouse = Product(\"Mouse\", 25)\n"
+                    "keyboard = Product(\"Keyboard\", 75)\n\n"
+                    "bundle = Package(\"Workstation Bundle\")\n"
+                    "bundle.add(laptop)\n"
+                    "bundle.add(mouse)\n"
+                    "bundle.add(keyboard)\n\n"
+                    "gift = Package(\"Gift Package\")\n"
+                    "gift.add(Product(\"Headphones\", 100))\n"
+                    "gift.add(bundle)\n\n"
+                    "print(gift.show_details())\n"
+                    "print(f\"Total price: ${gift.get_price()}\")\n"
+                )
+            },
+
+            # Decorator
+            "Decorator": {
+                "name": "Decorator",
+                "type": "Structural",
+                "classes": ["IceCream", "PlainIceCream", "ToppingDecorator", "ChocolateTopping", "NutsTopping"],
+                "relationships": [
+                    ("IceCream", "PlainIceCream"),
+                    ("IceCream", "ToppingDecorator"),
+                    ("ToppingDecorator", "ChocolateTopping"),
+                    ("ToppingDecorator", "NutsTopping"),
+                    ("ToppingDecorator", "IceCream")  # wraps another ice cream
+                ],
+                "code": (
+                    "# Component: IceCream interface\n"
+                    "class IceCream:\n"
+                    "    def get_description(self):\n"
+                    "        raise NotImplementedError\n"
+                    "    def get_cost(self):\n"
+                    "        raise NotImplementedError\n\n"
+                    "# Concrete Component: plain ice cream\n"
+                    "class PlainIceCream(IceCream):\n"
+                    "    def get_description(self):\n"
+                    "        return \"Plain ice cream\"\n\n"
+                    "    def get_cost(self):\n"
+                    "        return 2.0\n\n"
+                    "# Decorator: base class for toppings\n"
+                    "class ToppingDecorator(IceCream):\n"
+                    "    def __init__(self, ice_cream: IceCream):\n"
+                    "        self.ice_cream = ice_cream\n\n"
+                    "    def get_description(self):\n"
+                    "        return self.ice_cream.get_description()\n\n"
+                    "    def get_cost(self):\n"
+                    "        return self.ice_cream.get_cost()\n\n"
+                    "# Concrete Decorators\n"
+                    "class ChocolateTopping(ToppingDecorator):\n"
+                    "    def get_description(self):\n"
+                    "        return self.ice_cream.get_description() + \", chocolate\"\n\n"
+                    "    def get_cost(self):\n"
+                    "        return self.ice_cream.get_cost() + 0.5\n\n"
+                    "class NutsTopping(ToppingDecorator):\n"
+                    "    def get_description(self):\n"
+                    "        return self.ice_cream.get_description() + \", nuts\"\n\n"
+                    "    def get_cost(self):\n"
+                    "        return self.ice_cream.get_cost() + 0.7\n\n"
+                    "# Example usage\n"
+                    "icecream = PlainIceCream()\n"
+                    "print(icecream.get_description(), \"- $\", icecream.get_cost())\n\n"
+                    "choco_icecream = ChocolateTopping(PlainIceCream())\n"
+                    "print(choco_icecream.get_description(), \"- $\", choco_icecream.get_cost())\n\n"
+                    "deluxe_icecream = NutsTopping(ChocolateTopping(PlainIceCream()))\n"
+                    "print(deluxe_icecream.get_description(), \"- $\", deluxe_icecream.get_cost())\n"
+                )
+            },
+
+            # Facade
+            "Facade": {
+                "name": "Facade",
+                "type": "Structural",
+                "classes": ["FlightBooking", "HotelBooking", "CarRental", "TravelFacade"],
+                "relationships": [
+                    ("TravelFacade", "FlightBooking"),
+                    ("TravelFacade", "HotelBooking"),
+                    ("TravelFacade", "CarRental")
+                ],
+                "code": (
+                    "# Subsystem: Flight booking\n"
+                    "class FlightBooking:\n"
+                    "    def book_flight(self, destination):\n"
+                    "        return f\"Flight booked to {destination}\"\n\n"
+                    "# Subsystem: Hotel booking\n"
+                    "class HotelBooking:\n"
+                    "    def book_hotel(self, destination):\n"
+                    "        return f\"Hotel booked in {destination}\"\n\n"
+                    "# Subsystem: Car rental\n"
+                    "class CarRental:\n"
+                    "    def rent_car(self, destination):\n"
+                    "        return f\"Car rented in {destination}\"\n\n"
+                    "# Facade: simplifies the travel booking process\n"
+                    "class TravelFacade:\n"
+                    "    def __init__(self):\n"
+                    "        self.flight = FlightBooking()\n"
+                    "        self.hotel = HotelBooking()\n"
+                    "        self.car = CarRental()\n\n"
+                    "    def book_trip(self, destination):\n"
+                    "        results = []\n"
+                    "        results.append(self.flight.book_flight(destination))\n"
+                    "        results.append(self.hotel.book_hotel(destination))\n"
+                    "        results.append(self.car.rent_car(destination))\n"
+                    "        return \"\\n\".join(results)\n\n"
+                    "# Example usage\n"
+                    "travel_agency = TravelFacade()\n"
+                    "print(travel_agency.book_trip(\"Paris\"))\n"
+                )
+            },
+
+            # Flyweight
+            "Flyweight": {
+                "name": "Flyweight",
+                "type": "Structural",
+                "classes": ["Font", "FontFactory", "Character"],
+                "relationships": [
+                    ("FontFactory", "Font"),
+                    ("Character", "Font")
+                ],
+                "code": (
+                    "# Flyweight: Font object (intrinsic state)\n"
+                    "class Font:\n"
+                    "    def __init__(self, family, size, style):\n"
+                    "        self.family = family\n"
+                    "        self.size = size\n"
+                    "        self.style = style\n\n"
+                    "    def __str__(self):\n"
+                    "        return f\"Font({self.family}, {self.size}pt, {self.style})\"\n\n"
+                    "# Flyweight Factory: manages shared fonts\n"
+                    "class FontFactory:\n"
+                    "    _fonts = {}\n\n"
+                    "    @classmethod\n"
+                    "    def get_font(cls, family, size, style):\n"
+                    "        key = (family, size, style)\n"
+                    "        if key not in cls._fonts:\n"
+                    "            cls._fonts[key] = Font(family, size, style)\n"
+                    "        return cls._fonts[key]\n\n"
+                    "# Context: character that uses a shared font\n"
+                    "class Character:\n"
+                    "    def __init__(self, char, font: Font):\n"
+                    "        self.char = char\n"
+                    "        self.font = font  # shared flyweight\n\n"
+                    "    def render(self):\n"
+                    "        return f\"Character '{self.char}' in {self.font}\"\n\n"
+                    "# Example usage\n"
+                    "factory = FontFactory()\n"
+                    "font1 = factory.get_font(\"Arial\", 12, \"Regular\")\n"
+                    "font2 = factory.get_font(\"Arial\", 12, \"Regular\")\n"
+                    "font3 = factory.get_font(\"Arial\", 12, \"Bold\")\n\n"
+                    "# Characters share the same font instance if attributes match\n"
+                    "c1 = Character('H', font1)\n"
+                    "c2 = Character('i', font2)\n"
+                    "c3 = Character('!', font3)\n\n"
+                    "print(c1.render())\n"
+                    "print(c2.render())\n"
+                    "print(c3.render())\n\n"
+                    "print(\"font1 is font2:\", font1 is font2)  # True (shared)\n"
+                    "print(\"font1 is font3:\", font1 is font3)  # False (different style)\n"
+                )
+            },
+
+            # Proxy (Security Proxy)
+            "Proxy": {
+                "name": "Proxy",
+                "type": "Structural",
+                "classes": ["Resource", "RealResource", "SecurityProxy"],
+                "relationships": [
+                    ("Resource", "RealResource"),
+                    ("Resource", "SecurityProxy"),
+                    ("SecurityProxy", "RealResource")
+                ],
+                "code": (
+                    "# Subject interface\n"
+                    "class Resource:\n"
+                    "    def access(self):\n"
+                    "        raise NotImplementedError\n\n"
+                    "# Real Subject: the actual resource\n"
+                    "class RealResource(Resource):\n"
+                    "    def access(self):\n"
+                    "        return \"Accessing sensitive resource\"\n\n"
+                    "# Proxy: checks permissions before delegating to RealResource\n"
+                    "class SecurityProxy(Resource):\n"
+                    "    def __init__(self, user_role):\n"
+                    "        self.user_role = user_role\n"
+                    "        self.real_resource = RealResource()\n\n"
+                    "    def access(self):\n"
+                    "        if self.user_role == \"admin\":\n"
+                    "            return self.real_resource.access()\n"
+                    "        else:\n"
+                    "            return \"Access denied: insufficient permissions\"\n\n"
+                    "# Example usage\n"
+                    "admin_proxy = SecurityProxy(\"admin\")\n"
+                    "guest_proxy = SecurityProxy(\"guest\")\n\n"
+                    "print(admin_proxy.access())\n"
+                    "print(guest_proxy.access())\n"
+                )
+            }
         }
 
     def get_pattern(self, name):
