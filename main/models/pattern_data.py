@@ -23,14 +23,14 @@ class PatternData:
                     "        self.print_jobs.append(job_name)\n"
                     "        print(f\"Job '{job_name}' added to the printer queue\")\n\n"
                     "# Example usage: multiple users share the same printer\n"
-                    "alice_printer = NetworkPrinter()\n"
-                    "bob_printer = NetworkPrinter()\n"
+                    "ana_printer = NetworkPrinter()\n"
+                    "tony_printer = NetworkPrinter()\n"
                     "\n"
-                    "alice_printer.add_job('Report.pdf')\n"
-                    "bob_printer.add_job('Presentation.pptx')\n"
+                    "ana_printer.add_job('Report.pdf')\n"
+                    "tony_printer.add_job('Presentation.pptx')\n"
                     "\n"
-                    "print(f\"Are both users using the same printer instance? {alice_printer is bob_printer}\")\n"
-                    "print(f\"Printer queue: {alice_printer.print_jobs}\")\n"
+                    "print(f\"Are both users using the same printer instance? {ana_printer is tony_printer}\")\n"
+                    "print(f\"Printer queue: {ana_printer.print_jobs}\")\n"
                 )
             },
 
