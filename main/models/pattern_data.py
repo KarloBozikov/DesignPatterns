@@ -538,7 +538,7 @@ class PatternData:
                 )
             },
 
-            # Proxy (Security Proxy)
+            # Proxy
             "Proxy": {
                 "name": "Proxy",
                 "type": "Structural",
@@ -573,7 +573,158 @@ class PatternData:
                     "print(admin_proxy.access())\n"
                     "print(guest_proxy.access())\n"
                 )
-            }
+            },
+
+            # Behavioral Patterns
+            # Chain of Responsibility
+            "Chain of Responsibility": {
+                "name": "Chain of Responsibility",
+                "type": "Behavioral",
+                "classes": ["SupportHandler", "Level1Support", "Level2Support", "Level3Support"],
+                "relationships": [
+                    ("SupportHandler", "Level1Support"),
+                    ("SupportHandler", "Level2Support"),
+                    ("SupportHandler", "Level3Support"),
+                    ("Level1Support", "SupportHandler"),
+                    ("Level2Support", "SupportHandler"),
+                    ("Level3Support", "SupportHandler")
+                ],
+                "code": (
+                    "# Handler interface\n"
+                    "class SupportHandler:\n"
+                    "    def __init__(self):\n"
+                    "        self.next_handler = None\n\n"
+                    "    def set_next(self, handler):\n"
+                    "        self.next_handler = handler\n"
+                    "        return handler  # allow chaining\n\n"
+                    "    def handle(self, issue):\n"
+                    "        if self.next_handler:\n"
+                    "            return self.next_handler.handle(issue)\n"
+                    "        return \"No one could resolve the issue.\"\n\n"
+                    "# Concrete Handlers\n"
+                    "class Level1Support(SupportHandler):\n"
+                    "    def handle(self, issue):\n"
+                    "        if issue == \"password reset\":\n"
+                    "            return \"Level 1: Resolved password reset.\"\n"
+                    "        else:\n"
+                    "            return super().handle(issue)\n\n"
+                    "class Level2Support(SupportHandler):\n"
+                    "    def handle(self, issue):\n"
+                    "        if issue == \"software installation\":\n"
+                    "            return \"Level 2: Resolved software installation.\"\n"
+                    "        else:\n"
+                    "            return super().handle(issue)\n\n"
+                    "class Level3Support(SupportHandler):\n"
+                    "    def handle(self, issue):\n"
+                    "        if issue == \"network outage\":\n"
+                    "            return \"Level 3: Resolved network outage.\"\n"
+                    "        else:\n"
+                    "            return super().handle(issue)\n\n"
+                    "# Example usage\n"
+                    "l1 = Level1Support()\n"
+                    "l2 = Level2Support()\n"
+                    "l3 = Level3Support()\n\n"
+                    "l1.set_next(l2).set_next(l3)\n\n"
+                    "print(l1.handle(\"password reset\"))\n"
+                    "print(l1.handle(\"software installation\"))\n"
+                    "print(l1.handle(\"network outage\"))\n"
+                    "print(l1.handle(\"unknown issue\"))\n"
+                )
+            },
+
+            # Command
+            "Command": {
+                "name": "Command",
+                "type": "Behavioral",
+                "classes": ["Command", "OrderCommand", "Kitchen", "Waiter"],
+                "relationships": [
+                    ("Command", "OrderCommand"),
+                    ("OrderCommand", "Kitchen"),
+                    ("Waiter", "OrderCommand")
+                ],
+                "code": (
+                    "# Command interface\n"
+                    "class Command:\n"
+                    "    def execute(self):\n"
+                    "        raise NotImplementedError\n\n"
+                    "# Receiver: Kitchen\n"
+                    "class Kitchen:\n"
+                    "    def prepare_dish(self, dish):\n"
+                    "        return f\"Kitchen: Preparing {dish}\"\n\n"
+                    "# Concrete Command: OrderCommand\n"
+                    "class OrderCommand(Command):\n"
+                    "    def __init__(self, kitchen, dish):\n"
+                    "        self.kitchen = kitchen\n"
+                    "        self.dish = dish\n\n"
+                    "    def execute(self):\n"
+                    "        return self.kitchen.prepare_dish(self.dish)\n\n"
+                    "# Invoker: Waiter\n"
+                    "class Waiter:\n"
+                    "    def __init__(self):\n"
+                    "        self.orders = []\n\n"
+                    "    def take_order(self, command: Command):\n"
+                    "        self.orders.append(command)\n\n"
+                    "    def send_orders(self):\n"
+                    "        results = []\n"
+                    "        for order in self.orders:\n"
+                    "            results.append(order.execute())\n"
+                    "        self.orders.clear()\n"
+                    "        return results\n\n"
+                    "# Example usage\n"
+                    "kitchen = Kitchen()\n"
+                    "waiter = Waiter()\n\n"
+                    "# Guests place orders via waiter\n"
+                    "order1 = OrderCommand(kitchen, \"Pasta\")\n"
+                    "order2 = OrderCommand(kitchen, \"Pizza\")\n\n"
+                    "waiter.take_order(order1)\n"
+                    "waiter.take_order(order2)\n\n"
+                    "for result in waiter.send_orders():\n"
+                    "    print(result)\n"
+                )
+            },
+
+            # Mediator
+            "Mediator": {
+                "name": "Mediator",
+                "type": "Behavioral",
+                "classes": ["AirTrafficControl", "Plane"],
+                "relationships": [
+                    ("AirTrafficControl", "Plane"),
+                    ("Plane", "AirTrafficControl")
+                ],
+                "code": (
+                    "# Mediator: Air Traffic Control (ATC)\n"
+                    "class AirTrafficControl:\n"
+                    "    def __init__(self):\n"
+                    "        self.planes = []\n\n"
+                    "    def register_plane(self, plane):\n"
+                    "        self.planes.append(plane)\n\n"
+                    "    def show_message(self, sender, message):\n"
+                    "        results = []\n"
+                    "        for plane in self.planes:\n"
+                    "            if plane != sender:\n"
+                    "                results.append(f\"{sender.name} to {plane.name}: {message}\")\n"
+                    "        return results\n\n"
+                    "# Colleague: Plane\n"
+                    "class Plane:\n"
+                    "    def __init__(self, name, atc: AirTrafficControl):\n"
+                    "        self.name = name\n"
+                    "        self.atc = atc\n"
+                    "        atc.register_plane(self)\n\n"
+                    "    def send(self, message):\n"
+                    "        return self.atc.show_message(self, message)\n\n"
+                    "# Example usage\n"
+                    "atc = AirTrafficControl()\n\n"
+                    "plane1 = Plane(\"Flight A123\", atc)\n"
+                    "plane2 = Plane(\"Flight B456\", atc)\n"
+                    "plane3 = Plane(\"Flight C789\", atc)\n\n"
+                    "for msg in plane1.send(\"Requesting landing clearance\"):\n"
+                    "    print(msg)\n\n"
+                    "for msg in plane2.send(\"Taking off now\"):\n"
+                    "    print(msg)\n"
+                )
+            },
+
         }
 
     def get_pattern(self, name):

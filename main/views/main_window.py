@@ -91,8 +91,11 @@ class MainWindow(QMainWindow):
         left_layout.addStretch()
         left_panel.setLayout(left_layout)
 
-        # --- Diagram + code views ---
+        # --- Diagram views ---
         self.diagram_view = DiagramView()
+        self.diagram_view.setStyleSheet("""padding: 5px;""")
+
+        # --- Code views ---
         self.code_view = QTextEdit()
         self.code_view.setReadOnly(True)
         self.code_view.setFont(QFont("Ariel", 12))
@@ -137,7 +140,7 @@ class MainWindow(QMainWindow):
             remaining = sizes[1] + sizes[2] + self.left_panel_width
 
             # 60% for diagram, 40% for code view
-            diagram_width = int(remaining * 0.5)
+            diagram_width = int(remaining * 0.6)
             code_width = remaining - diagram_width
 
             self.splitter.setSizes([0, diagram_width, code_width])
