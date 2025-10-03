@@ -1,109 +1,99 @@
-import pygame
-import sys
 import os
-import time
+import pygame
+from PySide6.QtCore import QTimer
+from PySide6.QtGui import QPixmap
+from ..PatternAnimation import PatternAnimation
 
-pygame.init()
 
-# ================== PODEŠAVANJE EKRANA ==================
-BASE_WIDTH, BASE_HEIGHT = 1280, 720
-screen = pygame.display.set_mode((BASE_WIDTH, BASE_HEIGHT), pygame.RESIZABLE)
-pygame.display.set_caption("Singleton - Printer Triangle Loop Animation")
+class SingletonAnimation(PatternAnimation):
+    """Singleton animation drawn directly into DiagramView."""
 
-WHITE = (255, 255, 255)
+    def __init__(self, view: "DiagramView"):
+        super().__init__(view)
 
-# ================== UČITAVANJE SLIKA ==================
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+        # Load resources
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        base_path = os.path.normpath(
+            os.path.join(current_dir, "../../../../main/resources/diagrams/creational_patterns/singleton/")
+        )
+        self.printer_img_orig = pygame.image.load(os.path.join(base_path, "printer.png"))
+        self.man_img_orig = pygame.image.load(os.path.join(base_path, "man.png"))
+        self.woman_img_orig = pygame.image.load(os.path.join(base_path, "woman.png"))
+        self.document_img_orig = pygame.image.load(os.path.join(base_path, "document.png"))
 
-# relativni path do resources
-BASE_PATH = os.path.normpath(os.path.join(CURRENT_DIR, "../../../../main/resources/diagrams/creational_patterns/singleton/"))
+        # Initialize positions
+        self.reset_positions()
+        self.speed = 5
+        self.paused = False
 
-printer_img_orig = pygame.image.load(os.path.join(BASE_PATH, "printer.png"))
-man_img_orig = pygame.image.load(os.path.join(BASE_PATH, "man.png"))
-woman_img_orig = pygame.image.load(os.path.join(BASE_PATH, "woman.png"))
-document_img_orig = pygame.image.load(os.path.join(BASE_PATH, "document.png"))
+    # ---------------- Helpers ----------------
 
-# ================== POZICIJE (bazne za 1280x720) ==================
-printer_pos_orig = (BASE_WIDTH//2 - 75, 50)
-man_pos_orig = (150, BASE_HEIGHT - 250)
-woman_pos_orig = (BASE_WIDTH - 270, BASE_HEIGHT - 250)
-doc1_pos_orig = [man_pos_orig[0] + 80, man_pos_orig[1] + 40]   # dokument mana
-doc2_pos_orig = [woman_pos_orig[0] + 50, woman_pos_orig[1] + 40] # dokument žene
+    def reset_positions(self):
+        w, h = self.view.width(), self.view.height()
+        sx, sy = self.scale_factor()
 
-# ================== SKALIRANJE ==================
-def scale_elements():
-    current_w, current_h = screen.get_size()
-    scale_x = current_w / BASE_WIDTH
-    scale_y = current_h / BASE_HEIGHT
+        self.printer_pos = (int(w * 0.5 - 75 * sx), int(50 * sy))
+        self.man_pos = (int(150 * sx), int(h - 250 * sy))
+        self.woman_pos = (int(w - 270 * sx), int(h - 250 * sy))
+        self.doc1_pos_orig = [self.man_pos[0] + int(80 * sx), self.man_pos[1] + int(40 * sy)]
+        self.doc2_pos_orig = [self.woman_pos[0] + int(50 * sx), self.woman_pos[1] + int(40 * sy)]
 
-    man_img = pygame.transform.scale(man_img_orig, (int(150*scale_x), int(200*scale_y)))
-    woman_img = pygame.transform.scale(woman_img_orig, (int(120*scale_x), int(150*scale_y)))
-    printer_img = pygame.transform.scale(printer_img_orig, (int(150*scale_x), int(150*scale_y)))
-    document_img = pygame.transform.scale(document_img_orig, (int(60*scale_x), int(80*scale_y)))
+        self.doc1_pos = list(self.doc1_pos_orig)
+        self.doc2_pos = list(self.doc2_pos_orig)
 
-    printer_pos = (int(printer_pos_orig[0]*scale_x), int(printer_pos_orig[1]*scale_y))
-    man_pos = (int(man_pos_orig[0]*scale_x), int(man_pos_orig[1]*scale_y))
-    woman_pos = (int(woman_pos_orig[0]*scale_x), int(woman_pos_orig[1]*scale_y))
+    def move_towards(self, current, target, step):
+        if current < target:
+            return current + min(step, target - current)
+        elif current > target:
+            return current - min(step, current - target)
+        return current
 
-    return man_img, man_pos, woman_img, woman_pos, printer_img, printer_pos, document_img
+    def scale_elements(self):
+        sx, sy = self.scale_factor()
 
-# ================== POMOĆNA FUNKCIJA ==================
-def move_towards(current, target, step):
-    """Pomiče current prema target sa maksimalnim korakom step po osi"""
-    if current < target:
-        current += min(step, target - current)
-    elif current > target:
-        current -= min(step, current - target)
-    return current
+        man_img = pygame.transform.scale(self.man_img_orig, (int(150 * sx), int(200 * sy)))
+        woman_img = pygame.transform.scale(self.woman_img_orig, (int(120 * sx), int(150 * sy)))
+        printer_img = pygame.transform.scale(self.printer_img_orig, (int(150 * sx), int(150 * sy)))
+        document_img = pygame.transform.scale(self.document_img_orig, (int(60 * sx), int(80 * sy)))
 
-# ================== MAIN LOOP ==================
-clock = pygame.time.Clock()
-running = True
-speed = 5  # brzina dokumenata
+        return man_img, self.man_pos, woman_img, self.woman_pos, printer_img, self.printer_pos, document_img
 
-# trenutne pozicije dokumenata
-doc1_pos = list(doc1_pos_orig)
-doc2_pos = list(doc2_pos_orig)
+    # ---------------- Frame Update ----------------
 
-while running:
-    screen.fill(WHITE)
+    def update_frame(self):
+        if self.paused:
+            return
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+        w, h = self.view.width(), self.view.height()
+        frame_surface = self.create_surface()
 
-    # skaliraj slike i pozicije
-    man_img, man_pos, woman_img, woman_pos, printer_img, printer_pos, document_img = scale_elements()
+        man_img, man_pos, woman_img, woman_pos, printer_img, printer_pos, document_img = self.scale_elements()
+        frame_surface.blit(man_img, man_pos)
+        frame_surface.blit(woman_img, woman_pos)
+        frame_surface.blit(printer_img, printer_pos)
 
-    # crtanje statičnih objekata
-    screen.blit(man_img, man_pos)
-    screen.blit(woman_img, woman_pos)
-    screen.blit(printer_img, printer_pos)
+        # Move docs
+        self.doc1_pos[0] = self.move_towards(self.doc1_pos[0], printer_pos[0] + 60, self.speed)
+        self.doc1_pos[1] = self.move_towards(self.doc1_pos[1], printer_pos[1] + 40, self.speed)
+        self.doc2_pos[0] = self.move_towards(self.doc2_pos[0], printer_pos[0] + 60, self.speed)
+        self.doc2_pos[1] = self.move_towards(self.doc2_pos[1], printer_pos[1] + 40, self.speed)
 
-    # ================== POMAK DOKUMENATA ==================
-    # Dokument od muskarca prema printeru
-    doc1_pos[0] = move_towards(doc1_pos[0], printer_pos[0] + 60, speed)
-    doc1_pos[1] = move_towards(doc1_pos[1], printer_pos[1] + 40, speed)
+        # Draw docs
+        frame_surface.blit(document_img, self.doc1_pos)
+        frame_surface.blit(document_img, self.doc2_pos)
 
-    # Dokument od žene prema printeru
-    doc2_pos[0] = move_towards(doc2_pos[0], printer_pos[0] + 60, speed)
-    doc2_pos[1] = move_towards(doc2_pos[1], printer_pos[1] + 40, speed)
+        # Reset loop if both docs reach printer
+        if (self.doc1_pos[0] == printer_pos[0] + 60 and self.doc1_pos[1] == printer_pos[1] + 40 and
+                self.doc2_pos[0] == printer_pos[0] + 60 and self.doc2_pos[1] == printer_pos[1] + 40):
+            self.paused = True
+            self.timer.stop()
+            QTimer.singleShot(2000, self.resume)
 
-    # crtanje dokumenata
-    screen.blit(document_img, doc1_pos)
-    screen.blit(document_img, doc2_pos)
+        # Convert → QImage → QLabel
+        qimg = self.to_qimage(frame_surface)
+        self.label.setPixmap(QPixmap.fromImage(qimg))
 
-    # ================== LOOP ANIMACIJA ==================
-    # Ako su oba dokumenta na printeru, čekaj 2 sekunde i resetiraj
-    if (doc1_pos[0] == printer_pos[0] + 60 and doc1_pos[1] == printer_pos[1] + 40 and
-            doc2_pos[0] == printer_pos[0] + 60 and doc2_pos[1] == printer_pos[1] + 40):
-        pygame.display.flip()  # prikaz trenutne pozicije
-        pygame.time.delay(2000)  # čekanje 2 sekunde
-        doc1_pos = list(doc1_pos_orig)
-        doc2_pos = list(doc2_pos_orig)
-
-    pygame.display.flip()
-    clock.tick(60)
-
-pygame.quit()
-sys.exit()
+    def resume(self):
+        self.reset_positions()
+        self.paused = False
+        self.timer.start(1000 // 60)

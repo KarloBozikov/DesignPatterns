@@ -1,7 +1,9 @@
-from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPixmapItem
-from PySide6.QtGui import QPixmap
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QLabel
+from PySide6.QtGui import QPixmap, QMovie
+from PySide6.QtCore import Qt, QTimer
 import os
+
+from .pattern_diagrams.creational.singleton import SingletonAnimation
 
 class DiagramView(QGraphicsView):
     def __init__(self):
@@ -10,24 +12,34 @@ class DiagramView(QGraphicsView):
         self.setScene(self.scene)
         self.setAlignment(Qt.AlignCenter)
 
-        # Path to diagrams
         self.diagram_path = os.path.join(os.path.dirname(__file__), "..", "resources", "diagram")
+        self.singleton_anim = None
 
     def draw_pattern_from_data(self, pattern_data):
-        """Load diagram image based on pattern name"""
+        """Load diagram image or animation based on pattern name"""
+        # Clear previous
         self.scene.clear()
+        if self.singleton_anim:
+            self.singleton_anim.timer.stop()
+            self.singleton_anim = None
 
-        pattern_name = pattern_data.get("name") or pattern_data.get("pattern_name") or "Unknown"
-        filename = f"{pattern_name.replace(' ', '')}.png"  # remove spaces in filename
-        filepath = os.path.join(self.diagram_path, filename)
+        pattern_name = (pattern_data.get("name") or
+                        pattern_data.get("pattern_name") or
+                        "Unknown").lower()
 
-        if os.path.exists(filepath):
-            pixmap = QPixmap(filepath)
-            item = QGraphicsPixmapItem(pixmap)
-            self.scene.addItem(item)
-            # center image
-            item.setPos(-pixmap.width()/2, -pixmap.height()/2)
-            self.setSceneRect(item.boundingRect())
+        match pattern_name:
+            case "singleton":
+                self.singleton_anim = SingletonAnimation(self)
+                QTimer.singleShot(0, self.singleton_anim.resize_to_view)
+
+            case _:
+                self.scene.addText(f"Diagram for {pattern_name} not found.")
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, "singleton_anim") and self.singleton_anim:
+            self.singleton_anim.resize_to_view()
         else:
-            # fallback message if image not found
-            self.scene.addText(f"Diagram for {pattern_name} not found.")
+            # Prevent scrollbars for static diagrams too
+            self.setSceneRect(0, 0, self.viewport().width(), self.viewport().height())
+
