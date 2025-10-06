@@ -1,8 +1,7 @@
-# pattern_animation_base.py
 import pygame
 from PySide6.QtWidgets import QLabel, QGraphicsProxyWidget
 from PySide6.QtCore import QTimer
-from PySide6.QtGui import QImage, QPixmap
+from PySide6.QtGui import QImage
 
 
 class PatternAnimation:
@@ -43,17 +42,9 @@ class PatternAnimation:
         # Force scene rect = viewport size (prevents scrollbars)
         self.view.setSceneRect(0, 0, w, h)
 
-        # Recalculate element positions proportionally
-        sx, sy = w / 1280, h / 720
-        self.printer_pos = (int(w * 0.5 - 75 * sx), int(50 * sy))
-        self.man_pos = (int(150 * sx), int(h - 250 * sy))
-        self.woman_pos = (int(w - 270 * sx), int(h - 250 * sy))
-        self.doc1_pos_orig = [self.man_pos[0] + int(80 * sx), self.man_pos[1] + int(40 * sy)]
-        self.doc2_pos_orig = [self.woman_pos[0] + int(50 * sx), self.woman_pos[1] + int(40 * sy)]
-
-        if self.doc1_pos is None or self.doc2_pos is None:
-            self.doc1_pos = list(self.doc1_pos_orig)
-            self.doc2_pos = list(self.doc2_pos_orig)
+        # Let the subclass handle repositioning of its own elements
+        if hasattr(self, "reset_positions"):
+            self.reset_positions()
 
     def create_surface(self):
         """Create transparent surface sized to DiagramView."""
@@ -74,4 +65,5 @@ class PatternAnimation:
     # ---------------- To Override ----------------
 
     def update_frame(self):
+        """Subclasses must override this to draw their animation frame."""
         pass

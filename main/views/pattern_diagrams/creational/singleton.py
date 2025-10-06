@@ -64,32 +64,33 @@ class SingletonAnimation(PatternAnimation):
         if self.paused:
             return
 
-        w, h = self.view.width(), self.view.height()
         frame_surface = self.create_surface()
-
         man_img, man_pos, woman_img, woman_pos, printer_img, printer_pos, document_img = self.scale_elements()
         frame_surface.blit(man_img, man_pos)
         frame_surface.blit(woman_img, woman_pos)
         frame_surface.blit(printer_img, printer_pos)
 
+        # Dynamic target position (center of printer)
+        target = (printer_pos[0] + printer_img.get_width() // 2 - document_img.get_width() // 2,
+                  printer_pos[1] + printer_img.get_height() // 2 - document_img.get_height() // 2)
+
         # Move docs
-        self.doc1_pos[0] = self.move_towards(self.doc1_pos[0], printer_pos[0] + 60, self.speed)
-        self.doc1_pos[1] = self.move_towards(self.doc1_pos[1], printer_pos[1] + 40, self.speed)
-        self.doc2_pos[0] = self.move_towards(self.doc2_pos[0], printer_pos[0] + 60, self.speed)
-        self.doc2_pos[1] = self.move_towards(self.doc2_pos[1], printer_pos[1] + 40, self.speed)
+        self.doc1_pos[0] = self.move_towards(self.doc1_pos[0], target[0], self.speed)
+        self.doc1_pos[1] = self.move_towards(self.doc1_pos[1], target[1], self.speed)
+        self.doc2_pos[0] = self.move_towards(self.doc2_pos[0], target[0], self.speed)
+        self.doc2_pos[1] = self.move_towards(self.doc2_pos[1], target[1], self.speed)
 
         # Draw docs
         frame_surface.blit(document_img, self.doc1_pos)
         frame_surface.blit(document_img, self.doc2_pos)
 
-        # Reset loop if both docs reach printer
-        if (self.doc1_pos[0] == printer_pos[0] + 60 and self.doc1_pos[1] == printer_pos[1] + 40 and
-                self.doc2_pos[0] == printer_pos[0] + 60 and self.doc2_pos[1] == printer_pos[1] + 40):
+        # Use tolerance for arrival check
+        if (abs(self.doc1_pos[0] - target[0]) <= 2 and abs(self.doc1_pos[1] - target[1]) <= 2 and
+                abs(self.doc2_pos[0] - target[0]) <= 2 and abs(self.doc2_pos[1] - target[1]) <= 2):
             self.paused = True
             self.timer.stop()
             QTimer.singleShot(2000, self.resume)
 
-        # Convert → QImage → QLabel
         qimg = self.to_qimage(frame_surface)
         self.label.setPixmap(QPixmap.fromImage(qimg))
 

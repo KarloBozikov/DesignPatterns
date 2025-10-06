@@ -725,6 +725,218 @@ class PatternData:
                 )
             },
 
+            # Memento
+            "Memento": {
+                "name": "Memento",
+                "type": "Behavioral",
+                "classes": ["TextEditor", "TextMemento", "History"],
+                "relationships": [
+                    ("TextEditor", "TextMemento"),
+                    ("History", "TextMemento")
+                ],
+                "code": (
+                    "# Memento: stores the state of the text editor\n"
+                    "class TextMemento:\n"
+                    "    def __init__(self, text):\n"
+                    "        self._text = text\n\n"
+                    "    def get_text(self):\n"
+                    "        return self._text\n\n"
+                    "# Originator: the Text Editor\n"
+                    "class TextEditor:\n"
+                    "    def __init__(self):\n"
+                    "        self._text = \"\"\n\n"
+                    "    def type_text(self, words):\n"
+                    "        self._text += words + \" \"\n\n"
+                    "    def show_text(self):\n"
+                    "        return self._text.strip()\n\n"
+                    "    def save(self):\n"
+                    "        return TextMemento(self._text)\n\n"
+                    "    def restore(self, memento: TextMemento):\n"
+                    "        self._text = memento.get_text()\n\n"
+                    "# Caretaker: History of mementos\n"
+                    "class History:\n"
+                    "    def __init__(self):\n"
+                    "        self._mementos = []\n\n"
+                    "    def save(self, memento: TextMemento):\n"
+                    "        self._mementos.append(memento)\n\n"
+                    "    def undo(self):\n"
+                    "        if self._mementos:\n"
+                    "            return self._mementos.pop()\n"
+                    "        return None\n\n"
+                    "# Example usage\n"
+                    "editor = TextEditor()\n"
+                    "history = History()\n\n"
+                    "editor.type_text('Hello')\n"
+                    "editor.type_text('world!')\n"
+                    "print('Text:', editor.show_text())\n\n"
+                    "# Save current state\n"
+                    "history.save(editor.save())\n\n"
+                    "editor.type_text('This will be removed.')\n"
+                    "print('Text after typing more:', editor.show_text())\n\n"
+                    "# Undo\n"
+                    "memento = history.undo()\n"
+                    "if memento:\n"
+                    "    editor.restore(memento)\n"
+                    "print('After undo:', editor.show_text())\n"
+                )
+            },
+
+            # Strategy
+            "Strategy": {
+                "name": "Strategy",
+                "type": "Behavioral",
+                "classes": ["PaymentStrategy", "CreditCardPayment", "PayPalPayment", "BitcoinPayment", "ShoppingCart"],
+                "relationships": [
+                    ("PaymentStrategy", "CreditCardPayment"),
+                    ("PaymentStrategy", "PayPalPayment"),
+                    ("PaymentStrategy", "BitcoinPayment"),
+                    ("ShoppingCart", "PaymentStrategy")
+                ],
+                "code": (
+                    "from abc import ABC, abstractmethod\n\n"
+                    "# Strategy interface\n"
+                    "class PaymentStrategy(ABC):\n"
+                    "    @abstractmethod\n"
+                    "    def pay(self, amount):\n"
+                    "        pass\n\n"
+                    "# Concrete Strategy: Credit Card\n"
+                    "class CreditCardPayment(PaymentStrategy):\n"
+                    "    def __init__(self, card_number):\n"
+                    "        self.card_number = card_number\n\n"
+                    "    def pay(self, amount):\n"
+                    "        return f'Paid ${amount} using Credit Card {self.card_number[-4:]}'\n\n"
+                    "# Concrete Strategy: PayPal\n"
+                    "class PayPalPayment(PaymentStrategy):\n"
+                    "    def __init__(self, email):\n"
+                    "        self.email = email\n\n"
+                    "    def pay(self, amount):\n"
+                    "        return f'Paid ${amount} using PayPal account {self.email}'\n\n"
+                    "# Concrete Strategy: Bitcoin\n"
+                    "class BitcoinPayment(PaymentStrategy):\n"
+                    "    def __init__(self, wallet):\n"
+                    "        self.wallet = wallet\n\n"
+                    "    def pay(self, amount):\n"
+                    "        return f'Paid ${amount} using Bitcoin wallet {self.wallet[:6]}...'\n\n"
+                    "# Context: Shopping Cart\n"
+                    "class ShoppingCart:\n"
+                    "    def __init__(self):\n"
+                    "        self.items = []\n"
+                    "        self.payment_strategy = None\n\n"
+                    "    def add_item(self, item, price):\n"
+                    "        self.items.append((item, price))\n\n"
+                    "    def set_payment_strategy(self, strategy: PaymentStrategy):\n"
+                    "        self.payment_strategy = strategy\n\n"
+                    "    def checkout(self):\n"
+                    "        if not self.payment_strategy:\n"
+                    "            return 'No payment method selected!'\n"
+                    "        total = sum(price for _, price in self.items)\n"
+                    "        return self.payment_strategy.pay(total)\n\n"
+                    "# Example usage\n"
+                    "cart = ShoppingCart()\n"
+                    "cart.add_item('Book', 20)\n"
+                    "cart.add_item('Pen', 5)\n\n"
+                    "cart.set_payment_strategy(CreditCardPayment('1234-5678-9876-5432'))\n"
+                    "print(cart.checkout())\n\n"
+                    "cart.set_payment_strategy(PayPalPayment('user@example.com'))\n"
+                    "print(cart.checkout())\n\n"
+                    "cart.set_payment_strategy(BitcoinPayment('1ABCDxyzWallet'))\n"
+                    "print(cart.checkout())\n"
+                )
+            },
+
+            # Observer
+            "Observer": {
+                "name": "Observer",
+                "type": "Behavioral",
+                "classes": ["Item", "Customer"],
+                "relationships": [
+                    ("Item", "Customer")
+                ],
+                "code": (
+                    "# Subject (Observable)\n"
+                    "class Item:\n"
+                    "    def __init__(self, name, price):\n"
+                    "        self.name = name\n"
+                    "        self.price = price\n"
+                    "        self.observers = []  # list of customers watching this item\n\n"
+                    "    def add_observer(self, customer):\n"
+                    "        self.observers.append(customer)\n\n"
+                    "    def remove_observer(self, customer):\n"
+                    "        self.observers.remove(customer)\n\n"
+                    "    def set_price(self, new_price):\n"
+                    "        if new_price < self.price:\n"
+                    "            self.price = new_price\n"
+                    "            self.notify_observers()\n"
+                    "        else:\n"
+                    "            self.price = new_price\n\n"
+                    "    def notify_observers(self):\n"
+                    "        for customer in self.observers:\n"
+                    "            customer.update(self)\n\n"
+                    "# Observer\n"
+                    "class Customer:\n"
+                    "    def __init__(self, name):\n"
+                    "        self.name = name\n\n"
+                    "    def update(self, item: Item):\n"
+                    "        print(f'{self.name} notified: Price drop! {item.name} is now ${item.price}')\n\n"
+                    "# Example usage\n"
+                    "laptop = Item('Gaming Laptop', 1500)\n"
+                    "alice = Customer('Alice')\n"
+                    "bob = Customer('Bob')\n\n"
+                    "laptop.add_observer(alice)\n"
+                    "laptop.add_observer(bob)\n\n"
+                    "print('Initial price set.')\n"
+                    "laptop.set_price(1500)\n\n"
+                    "print('\\nPrice drops...')\n"
+                    "laptop.set_price(1200)\n"
+                )
+            },
+
+            # State
+            "State": {
+                "name": "State",
+                "type": "Behavioral",
+                "classes": ["TrafficLight", "TrafficLightState", "RedState", "GreenState", "YellowState"],
+                "relationships": [
+                    ("TrafficLight", "TrafficLightState"),
+                    ("TrafficLightState", "RedState"),
+                    ("TrafficLightState", "GreenState"),
+                    ("TrafficLightState", "YellowState")
+                ],
+                "code": (
+                    "from abc import ABC, abstractmethod\n\n"
+                    "# State interface\n"
+                    "class TrafficLightState(ABC):\n"
+                    "    @abstractmethod\n"
+                    "    def switch(self, light):\n"
+                    "        pass\n\n"
+                    "# Concrete States\n"
+                    "class RedState(TrafficLightState):\n"
+                    "    def switch(self, light):\n"
+                    "        print('Red → Stop. Next: Yellow')\n"
+                    "        light.set_state(YellowState())\n\n"
+                    "class YellowState(TrafficLightState):\n"
+                    "    def switch(self, light):\n"
+                    "        print('Yellow → Caution. Next: Green')\n"
+                    "        light.set_state(GreenState())\n\n"
+                    "class GreenState(TrafficLightState):\n"
+                    "    def switch(self, light):\n"
+                    "        print('Green → Go. Next: Red')\n"
+                    "        light.set_state(RedState())\n\n"
+                    "# Context\n"
+                    "class TrafficLight:\n"
+                    "    def __init__(self):\n"
+                    "        self.state = RedState()  # initial state\n\n"
+                    "    def set_state(self, state: TrafficLightState):\n"
+                    "        self.state = state\n\n"
+                    "    def change(self):\n"
+                    "        self.state.switch(self)\n\n"
+                    "# Example usage\n"
+                    "light = TrafficLight()\n"
+                    "for _ in range(5):\n"
+                    "    light.change()\n"
+                )
+            }
+
         }
 
     def get_pattern(self, name):
