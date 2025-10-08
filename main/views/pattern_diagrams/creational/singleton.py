@@ -1,12 +1,11 @@
 import os
 import pygame
 from PySide6.QtCore import QTimer
-from PySide6.QtGui import QPixmap
 from ..PatternAnimation import PatternAnimation
 
 
 class SingletonAnimation(PatternAnimation):
-    """Singleton animation drawn directly into DiagramView."""
+    """Singleton pattern animation: two people send docs to the same printer."""
 
     def __init__(self, view: "DiagramView"):
         super().__init__(view)
@@ -16,15 +15,19 @@ class SingletonAnimation(PatternAnimation):
         base_path = os.path.normpath(
             os.path.join(current_dir, "../../../../main/resources/diagrams/creational_patterns/singleton/")
         )
-        self.printer_img_orig = pygame.image.load(os.path.join(base_path, "printer.png"))
-        self.man_img_orig = pygame.image.load(os.path.join(base_path, "man.png"))
-        self.woman_img_orig = pygame.image.load(os.path.join(base_path, "woman.png"))
-        self.document_img_orig = pygame.image.load(os.path.join(base_path, "document.png"))
+
+        self.imgs = {
+            "printer": pygame.image.load(os.path.join(base_path, "printer.png")),
+            "man": pygame.image.load(os.path.join(base_path, "man.png")),
+            "woman": pygame.image.load(os.path.join(base_path, "woman.png")),
+            "document": pygame.image.load(os.path.join(base_path, "document.png")),
+        }
+
+        # Movement speed
+        self.speed = 5
 
         # Initialize positions
         self.reset_positions()
-        self.speed = 5
-        self.paused = False
 
     # ---------------- Helpers ----------------
 
@@ -35,28 +38,17 @@ class SingletonAnimation(PatternAnimation):
         self.printer_pos = (int(w * 0.5 - 75 * sx), int(50 * sy))
         self.man_pos = (int(150 * sx), int(h - 250 * sy))
         self.woman_pos = (int(w - 270 * sx), int(h - 250 * sy))
-        self.doc1_pos_orig = [self.man_pos[0] + int(80 * sx), self.man_pos[1] + int(40 * sy)]
-        self.doc2_pos_orig = [self.woman_pos[0] + int(50 * sx), self.woman_pos[1] + int(40 * sy)]
 
-        self.doc1_pos = list(self.doc1_pos_orig)
-        self.doc2_pos = list(self.doc2_pos_orig)
-
-    def move_towards(self, current, target, step):
-        if current < target:
-            return current + min(step, target - current)
-        elif current > target:
-            return current - min(step, current - target)
-        return current
+        self.doc1_pos = [self.man_pos[0] + int(80 * sx), self.man_pos[1] + int(40 * sy)]
+        self.doc2_pos = [self.woman_pos[0] + int(50 * sx), self.woman_pos[1] + int(40 * sy)]
 
     def scale_elements(self):
-        sx, sy = self.scale_factor()
-
-        man_img = pygame.transform.scale(self.man_img_orig, (int(150 * sx), int(200 * sy)))
-        woman_img = pygame.transform.scale(self.woman_img_orig, (int(120 * sx), int(150 * sy)))
-        printer_img = pygame.transform.scale(self.printer_img_orig, (int(150 * sx), int(150 * sy)))
-        document_img = pygame.transform.scale(self.document_img_orig, (int(60 * sx), int(80 * sy)))
-
-        return man_img, self.man_pos, woman_img, self.woman_pos, printer_img, self.printer_pos, document_img
+        """Return scaled images and positions."""
+        man_img = self.scale_image(self.imgs["man"], 150, 200)
+        woman_img = self.scale_image(self.imgs["woman"], 120, 150)
+        printer_img = self.scale_image(self.imgs["printer"], 150, 150)
+        doc_img = self.scale_image(self.imgs["document"], 60, 80)
+        return man_img, woman_img, printer_img, doc_img
 
     # ---------------- Frame Update ----------------
 
@@ -64,15 +56,19 @@ class SingletonAnimation(PatternAnimation):
         if self.paused:
             return
 
-        frame_surface = self.create_surface()
-        man_img, man_pos, woman_img, woman_pos, printer_img, printer_pos, document_img = self.scale_elements()
-        frame_surface.blit(man_img, man_pos)
-        frame_surface.blit(woman_img, woman_pos)
-        frame_surface.blit(printer_img, printer_pos)
+        surface = self.create_surface()
+        man_img, woman_img, printer_img, doc_img = self.scale_elements()
 
-        # Dynamic target position (center of printer)
-        target = (printer_pos[0] + printer_img.get_width() // 2 - document_img.get_width() // 2,
-                  printer_pos[1] + printer_img.get_height() // 2 - document_img.get_height() // 2)
+        # Draw people + printer
+        surface.blit(man_img, self.man_pos)
+        surface.blit(woman_img, self.woman_pos)
+        surface.blit(printer_img, self.printer_pos)
+
+        # Dynamic target (center of printer)
+        target = (
+            self.printer_pos[0] + printer_img.get_width() // 2 - doc_img.get_width() // 2,
+            self.printer_pos[1] + printer_img.get_height() // 2 - doc_img.get_height() // 2,
+        )
 
         # Move docs
         self.doc1_pos[0] = self.move_towards(self.doc1_pos[0], target[0], self.speed)
@@ -81,20 +77,28 @@ class SingletonAnimation(PatternAnimation):
         self.doc2_pos[1] = self.move_towards(self.doc2_pos[1], target[1], self.speed)
 
         # Draw docs
-        frame_surface.blit(document_img, self.doc1_pos)
-        frame_surface.blit(document_img, self.doc2_pos)
+        surface.blit(doc_img, self.doc1_pos)
+        surface.blit(doc_img, self.doc2_pos)
 
-        # Use tolerance for arrival check
+        # Arrival check
         if (abs(self.doc1_pos[0] - target[0]) <= 2 and abs(self.doc1_pos[1] - target[1]) <= 2 and
                 abs(self.doc2_pos[0] - target[0]) <= 2 and abs(self.doc2_pos[1] - target[1]) <= 2):
+            # Pause animation and show a message
             self.paused = True
             self.timer.stop()
+            self.draw_message(
+                surface,
+                "Both docs sent to the same printer (Singleton)",
+                (0, 255, 0),
+                (self.printer_pos[0], self.printer_pos[1], printer_img.get_width(), printer_img.get_height())
+            )
             QTimer.singleShot(2000, self.resume)
 
-        qimg = self.to_qimage(frame_surface)
-        self.label.setPixmap(QPixmap.fromImage(qimg))
+        # Finalize frame
+        self.finalize_frame(surface)
 
     def resume(self):
+        """Restart animation after a pause."""
         self.reset_positions()
         self.paused = False
         self.timer.start(1000 // 60)

@@ -1,5 +1,4 @@
 import os
-
 from PySide6 import QtCore
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout,
@@ -8,11 +7,11 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QFont, QIcon, QAction, QCursor
 
+from .PythonHighlighter import PythonHighlighter
 from .diagram_view import DiagramView
 from .pattern_view import PatternView
 from models.pattern_data import PatternData
 from controllers.pattern_controller import PatternController
-
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -100,6 +99,7 @@ class MainWindow(QMainWindow):
         self.code_view.setReadOnly(True)
         self.code_view.setFont(QFont("Ariel", 12))
         self.code_view.setStyleSheet("""padding: 5px;""")
+        self.highlighter = PythonHighlighter(self.code_view.document())
 
         # --- Splitter ---
         self.splitter = QSplitter(Qt.Horizontal)

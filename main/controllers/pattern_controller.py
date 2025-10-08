@@ -19,7 +19,7 @@ class PatternController:
         pattern_name = self.view.pattern_combo.currentText()
 
         if not pattern_name or pattern_name.startswith("--") or pattern_name == "Select pattern":
-            # Always show bold red error
+            # Always show a bold red error
             self.view.show_message("Select a pattern!")
             return
 
