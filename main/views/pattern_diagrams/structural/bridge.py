@@ -64,14 +64,10 @@ class BridgeAnimation(PatternAnimation):
         surface.blit(red, self.red_pos)
 
         # Centers for arrow connections
-        circle_center = (self.circle_pos[0] + circle.get_width() // 2,
-                         self.circle_pos[1] + circle.get_height() // 2)
-        square_center = (self.square_pos[0] + square.get_width() // 2,
-                         self.square_pos[1] + square.get_height() // 2)
-        blue_center = (self.blue_pos[0] + blue.get_width() // 2,
-                       self.blue_pos[1] + blue.get_height() // 2)
-        red_center = (self.red_pos[0] + red.get_width() // 2,
-                      self.red_pos[1] + red.get_height() // 2)
+        circle_center = self.get_center(self.circle_pos, circle)
+        square_center = self.get_center(self.square_pos, square)
+        blue_center   = self.get_center(self.blue_pos, blue)
+        red_center    = self.get_center(self.red_pos, red)
 
         # Animate arrows
         self.frame_count += 1

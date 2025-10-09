@@ -1,17 +1,16 @@
-import os
 from PySide6 import QtCore
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout,
+    QMainWindow, QWidget, QVBoxLayout,
     QComboBox, QSplitter, QTextEdit, QPushButton, QLabel, QToolButton
 )
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QFont, QIcon, QAction, QCursor
+from PySide6.QtGui import QFont, QIcon, QCursor
 
 from .PythonHighlighter import PythonHighlighter
 from .diagram_view import DiagramView
 from .pattern_view import PatternView
-from models.pattern_data import PatternData
 from controllers.pattern_controller import PatternController
+from models.pattern_data import PatternData
 
 class MainWindow(QMainWindow):
     def __init__(self):

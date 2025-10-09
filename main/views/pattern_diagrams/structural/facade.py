@@ -66,15 +66,12 @@ class FacadeAnimation(PatternAnimation):
         surface.blit(hotel, self.hotel_pos)
 
         # Centers
-        traveler_center = (self.traveler_pos[0] + traveler.get_width(),
-                           self.traveler_pos[1] + traveler.get_height() // 2)
-        service_center = (self.service_pos[0],
-                          self.service_pos[1] + service.get_height() // 2)
-        service_right = (self.service_pos[0] + service.get_width(),
-                         self.service_pos[1] + service.get_height() // 2)
-        flight_center = (self.flight_pos[0], self.flight_pos[1] + flight.get_height() // 2)
-        car_center = (self.car_pos[0], self.car_pos[1] + car.get_height() // 2)
-        hotel_center = (self.hotel_pos[0], self.hotel_pos[1] + hotel.get_height() // 2)
+        traveler_center = self.get_anchor(self.traveler_pos, traveler, "midright")
+        service_center  = self.get_anchor(self.service_pos, service, "midleft")
+        service_right   = self.get_anchor(self.service_pos, service, "midright")
+        flight_center   = self.get_anchor(self.flight_pos, flight, "midleft")
+        car_center      = self.get_anchor(self.car_pos, car, "midleft")
+        hotel_center    = self.get_anchor(self.hotel_pos, hotel, "midleft")
 
         # Animate arrows
         self.frame_count += 1

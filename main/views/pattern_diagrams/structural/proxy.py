@@ -54,14 +54,11 @@ class ProxyAnimation(PatternAnimation):
         surface.blit(data, self.data_pos)
 
         # Centers
-        scientist_center = (self.scientist_pos[0] + scientist.get_width(),
-                            self.scientist_pos[1] + scientist.get_height() // 2)
-        password_center_left = (self.password_pos[0],
-                                self.password_pos[1] + password.get_height() // 2)
-        password_center_right = (self.password_pos[0] + password.get_width(),
-                                 self.password_pos[1] + password.get_height() // 2)
-        data_center = (self.data_pos[0],
-                       self.data_pos[1] + data.get_height() // 2)
+        scientist_center      = self.get_anchor(self.scientist_pos, scientist, "midright")
+        password_center_left  = self.get_anchor(self.password_pos, password, "midleft")
+        password_center_right = self.get_anchor(self.password_pos, password, "midright")
+        data_center           = self.get_anchor(self.data_pos, data, "midleft")
+
 
         # Animate
         self.frame_count += 1

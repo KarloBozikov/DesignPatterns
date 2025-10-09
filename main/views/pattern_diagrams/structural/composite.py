@@ -63,14 +63,11 @@ class CompositeAnimation(PatternAnimation):
         surface.blit(smartphone, self.smartphone_pos)
 
         # Centers
-        package_center = (self.package_pos[0] + package.get_width() // 2,
-                          self.package_pos[1] + package.get_height())
-        headphone_center = (self.headphones_pos[0] + headphones.get_width() // 2,
-                            self.headphones_pos[1])
-        laptop_center = (self.laptop_pos[0] + laptop.get_width() // 2,
-                         self.laptop_pos[1])
-        smartphone_center = (self.smartphone_pos[0] + smartphone.get_width() // 2,
-                             self.smartphone_pos[1])
+        package_center    = self.get_center(self.package_pos, package, "bottom")
+        headphone_center  = self.get_center(self.headphones_pos, headphones, "top")
+        laptop_center     = self.get_center(self.laptop_pos, laptop, "top")
+        smartphone_center = self.get_center(self.smartphone_pos, smartphone, "top")
+
 
         # Animate arrows downward (Package → Items)
         self.frame_count += 1

@@ -65,15 +65,12 @@ class FlyweightAnimation(PatternAnimation):
         surface.blit(ex, self.ex_pos)
 
         # Centers
-        editor_center = (self.editor_pos[0] + editor.get_width() // 2,
-                         self.editor_pos[1] + editor.get_height())
-        font_center_top = (self.font_pos[0] + font_img.get_width() // 2,
-                           self.font_pos[1])
-        font_center_bottom = (self.font_pos[0] + font_img.get_width() // 2,
-                              self.font_pos[1] + font_img.get_height())
-        h_center = (self.h_pos[0] + h.get_width() // 2, self.h_pos[1])
-        i_center = (self.i_pos[0] + i.get_width() // 2, self.i_pos[1])
-        ex_center = (self.ex_pos[0] + ex.get_width() // 2, self.ex_pos[1])
+        editor_center      = self.get_anchor(self.editor_pos, editor, "bottom")
+        font_center_top    = self.get_anchor(self.font_pos, font_img, "top")
+        font_center_bottom = self.get_anchor(self.font_pos, font_img, "bottom")
+        h_center           = self.get_anchor(self.h_pos, h, "top")
+        i_center           = self.get_anchor(self.i_pos, i, "top")
+        ex_center          = self.get_anchor(self.ex_pos, ex, "top")
 
         # Animate arrows
         self.frame_count += 1
